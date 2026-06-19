@@ -16,14 +16,75 @@
         background: white;
         border: 2px solid black;
       }
+      #controls {
+        position: fixed;
+        bottom: 20px;
+        width: 100%;
+      }
+
+      button {
+        width: 70px;
+        height: 70px;
+        font-size: 30px;
+      }
     </style>
   </head>
   <body>
     <canvas id="game" width="500" height="700"></canvas>
+    <div id="controls">
+      <button id="left">◀</button>
+      <button id="up">▲</button>
+      <button id="down">▼</button>
+      <button id="right">▶</button>
+
+      <button id="fire">FIRE</button>
+    </div>
 
     <script>
       const canvas = document.getElementById("game");
       const ctx = canvas.getContext("2d");
+
+      const leftBtn = document.getElementById("left");
+      leftBtn.addEventListener("touchstart", () => {
+        keys["ArrowLeft"] = true;
+      });
+      leftBtn.addEventListener("touchend", () => {
+        keys["ArrowLeft"] = false;
+      });
+
+      const rightBtn = document.getElementById("right");
+      rightBtn.addEventListener("touchstart", () => {
+        keys["ArrowRight"] = true;
+      });
+      rightBtn.addEventListener("touchend", () => {
+        keys["ArrowRight"] = false;
+      });
+
+      const upBtn = document.getElementById("up");
+      upBtn.addEventListener("touchstart", () => {
+        keys["ArrowUp"] = true;
+      });
+      upBtn.addEventListener("touchend", () => {
+        keys["ArrowUp"] = false;
+      });
+
+      const downBtn = document.getElementById("down");
+      downBtn.addEventListener("touchstart", () => {
+        keys["ArrowDown"] = true;
+      });
+      downBtn.addEventListener("touchend", () => {
+        keys["ArrowDown"] = false;
+      });
+
+      const fireBtn = document.getElementById("fire");
+      fireBtn.addEventListener("touchstart", () => {
+        bullets.push({
+          x: player.x + player.width / 2,
+          y: player.y,
+          width: 4,
+          height: 15,
+        });
+      });
 
       let life = 3;
       let explosions = [];
