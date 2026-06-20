@@ -1,0 +1,327 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Dispenser Challenge</title>
+
+    <style>
+      body {
+        margin: 0;
+        background: white;
+        overflow-y: auto;
+        text-align: center;
+        font-family: Arial;
+      }
+
+      canvas {
+        background: white;
+        display: block;
+        margin: auto;
+        border: 1px solid black;
+      }
+
+      button {
+        width: 150px;
+        height: 60px;
+        font-size: 24px;
+        margin: 10px;
+      }
+
+      #result {
+        font-size: 32px;
+        height: 40px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>DISPENSER CHALLENGE</h1>
+
+    <canvas id="game" width="500" height="550"></canvas>
+
+    <br />
+
+    <div style="display: flex; justify-content: center; gap: 20px">
+      <button id="actionBtn">START</button>
+
+      <button id="restartBtn">RESTART</button>
+    </div>
+
+    <div id="result"></div>
+
+    <script>
+      const canvas = document.getElementById("game");
+      const ctx = canvas.getContext("2d");
+
+      const actionBtn = document.getElementById("actionBtn");
+      const restartBtn = document.getElementById("restartBtn");
+      const resultDiv = document.getElementById("result");
+
+      const dispenser = [
+        "2222222222222",
+        "2000000000002",
+        "2002222222002",
+        "2002000002002",
+        "2002222222002",
+        "2222222222222",
+        "0000002000000",
+        "0000002000000",
+        "0000002000000",
+      ];
+
+      const glass = [
+        "222222222222222",
+        "220000000000022",
+        "220000000000022",
+        "220000000000022",
+        "220000000000022",
+        "220000000000022",
+        "220000000000022",
+        "220000000000022",
+        "220000000000022",
+        "220000000000022",
+        "220000000000022",
+        "220000000000022",
+        "220000000000022",
+        "022000000000220",
+        "022000000000220",
+        "002200000022000",
+        "000222222220000",
+      ];
+
+      let running = false;
+      let waterHeight = 0;
+      let score = 0;
+      let dropY = 120;
+      let dropVisible = false;
+      let targetHeight = randomTarget();
+      let combo = 0;
+      let drops = [];
+
+      const glassX = 170;
+      const glassY = 250;
+      const glassWidth = 150;
+
+      const pixelSize = 10;
+
+      const glassHeight = glass.length * pixelSize;
+
+      const glassBottom = glassY + glassHeight;
+
+      const waterBottom = glassBottom - 20;
+
+      const waterLeft = glassX + 20;
+      const waterWidth = glassWidth - 40;
+
+      function drawDispenser() {
+        drawPixel(dispenser, 190, 40, 8);
+      }
+
+      function drawGlass() {
+        drawPixel(glass, 170, 250, 10);
+      }
+
+      function drawTarget() {
+        ctx.setLineDash([8, 8]);
+        ctx.strokeStyle = "red";
+
+        let y = waterBottom - targetHeight;
+
+        ctx.beginPath();
+
+        ctx.moveTo(190, y);
+        ctx.lineTo(300, y);
+
+        ctx.stroke();
+
+        ctx.setLineDash([]);
+      }
+
+      function drawWater() {
+        ctx.fillStyle = "#CCC";
+
+        let h = waterHeight;
+
+        let y = waterBottom - h;
+
+        let width = waterWidth;
+        let x = waterLeft;
+
+        if (h < 20) {
+          width = waterWidth - 20;
+          x = waterLeft + 10;
+        }
+
+        ctx.fillRect(x, y, width, h);
+      }
+
+      function drawPixel(sprite, x, y, size = 4) {
+        for (let row = 0; row < sprite.length; row++) {
+          for (let col = 0; col < sprite[row].length; col++) {
+            let value = sprite[row][col];
+
+            if (value === "0") continue;
+
+            if (value === "1") ctx.fillStyle = "#CCC";
+
+            if (value === "2") ctx.fillStyle = "black";
+
+            ctx.fillRect(x + col * size, y + row * size, size, size);
+          }
+        }
+      }
+
+      function randomTarget() {
+        return Math.floor(Math.random() * 130) + 20;
+      }
+
+      function resetGame() {
+        running = false;
+
+        waterHeight = 0;
+
+        targetHeight = randomTarget();
+
+        resultDiv.innerHTML = "";
+
+        actionBtn.innerHTML = "START";
+      }
+
+      restartBtn.onclick = () => {
+        waterHeight = 0;
+
+        targetHeight = randomTarget();
+
+        running = false;
+
+        dropY = 120;
+
+        actionBtn.innerHTML = "START";
+
+        resultDiv.innerHTML = "";
+      };
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        update();
+
+        drawDispenser();
+
+        drawDrops();
+
+        drawTarget();
+
+        drawWater();
+
+        drawGlass();
+
+        ctx.font = "25px Arial";
+        ctx.fillStyle = "black";
+        ctx.fillText("Score : " + score, 20, 40);
+
+        ctx.fillText("Combo : x" + combo, 320, 40);
+
+        ctx.fillStyle = "black";
+
+        requestAnimationFrame(draw);
+      }
+
+      actionBtn.onclick = () => {
+        if (!running) {
+          running = true;
+
+          actionBtn.innerHTML = "STOP";
+        } else {
+          running = false;
+
+          actionBtn.disabled = true;
+
+          actionBtn.innerHTML = "START";
+
+          calculateResult();
+
+          setTimeout(() => {
+            nextRound();
+            actionBtn.disabled = false;
+          }, 2000);
+        }
+      };
+
+      function calculateResult() {
+        let diff = Math.abs(waterHeight - targetHeight);
+
+        if (diff <= 5) {
+          resultDiv.innerHTML = "😎 PERFECT";
+          // score += 100;
+          combo++;
+          score += combo * 100;
+        } else if (diff <= 15) {
+          resultDiv.innerHTML = "😊 GOOD";
+          // score += 50;
+          combo++;
+          score += combo * 50;
+        } else if (diff <= 30) {
+          resultDiv.innerHTML = "😬 OK";
+          // score += 20;
+          combo++;
+          score += combo * 20;
+        } else {
+          resultDiv.innerHTML = "😫 MISS";
+          combo = 0;
+        }
+      }
+
+      function update() {
+        if (running) {
+          waterHeight += 0.15;
+
+          if (waterHeight > glassHeight - 30) {
+            running = false;
+
+            actionBtn.innerHTML = "START";
+
+            calculateResult();
+            setTimeout(nextRound, 2000);
+          }
+
+          if (Math.random() < 0.2) {
+            drops.push({
+              x: 242,
+              y: 112,
+            });
+          }
+        }
+      }
+
+      function drawDrops() {
+        ctx.fillStyle = "#AAA";
+
+        drops.forEach((d) => {
+          ctx.beginPath();
+
+          ctx.arc(d.x, d.y, 4, 0, Math.PI * 2);
+
+          ctx.fill();
+
+          d.y += 8;
+        });
+
+        drops = drops.filter((d) => d.y < 250);
+      }
+
+      function nextRound() {
+        waterHeight = 0;
+
+        drops = [];
+
+        targetHeight = randomTarget();
+
+        resultDiv.innerHTML = "";
+
+        actionBtn.innerHTML = "START";
+      }
+
+      draw();
+    </script>
+  </body>
+</html>
