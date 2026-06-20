@@ -63,89 +63,31 @@
       let gameOver = false;
 
       const player = {
-        x: 225,
-        y: 600,
+        x: canvas.width / 2,
+        y: canvas.height - 100,
         width: 50,
         height: 60,
-        speed: 6,
       };
 
       let bullets = [];
       let enemies = [];
+      let fireTimer = 0;
       let timer = 0;
 
-      canvas.addEventListener("touchstart", (e) => {
-        e.preventDefault();
+      function movePlayer(x, y) {
+        player.x = x - player.width / 2;
+        player.y = y - player.height / 2;
 
-        const rect = canvas.getBoundingClientRect();
-        const touch = e.touches[0];
-
-        const x = touch.clientX - rect.left;
-        const y = touch.clientY - rect.top;
-
-        // cek apakah menyentuh pesawat
-        if (
-          x >= player.x &&
-          x <= player.x + player.width &&
-          y >= player.y &&
-          y <= player.y + player.height
-        ) {
-          dragging = true;
-
-          // tembak
-          bullets.push({
-            x: player.x + player.width / 2 - 2,
-            y: player.y,
-            width: 4,
-            height: 15,
-          });
-        }
-      });
-
-      canvas.addEventListener("touchmove", (e) => {
-        if (!dragging) return;
-
-        e.preventDefault();
-
-        const rect = canvas.getBoundingClientRect();
-        const touch = e.touches[0];
-
-        player.x = touch.clientX - rect.left - player.width / 2;
-        player.y = touch.clientY - rect.top - player.height / 2;
-
-        // batasi agar tidak keluar layar
         player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+
         player.y = Math.max(
           0,
           Math.min(canvas.height - player.height, player.y),
         );
-      });
+      }
 
-      canvas.addEventListener("touchend", () => {
-        dragging = false;
-      });
-
-      canvas.addEventListener("pointerdown", (e) => {
-        const rect = canvas.getBoundingClientRect();
-
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-
-        if (
-          x >= player.x &&
-          x <= player.x + player.width &&
-          y >= player.y &&
-          y <= player.y + player.height
-        ) {
-          dragging = true;
-
-          bullets.push({
-            x: player.x + player.width / 2 - 2,
-            y: player.y,
-            width: 4,
-            height: 15,
-          });
-        }
+      canvas.addEventListener("pointerdown", () => {
+        dragging = true;
       });
 
       canvas.addEventListener("pointermove", (e) => {
@@ -153,18 +95,14 @@
 
         const rect = canvas.getBoundingClientRect();
 
-        player.x = e.clientX - rect.left - player.width / 2;
-        player.y = e.clientY - rect.top - player.height / 2;
-
-        player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
-
-        player.y = Math.max(
-          0,
-          Math.min(canvas.height - player.height, player.y),
-        );
+        movePlayer(e.clientX - rect.left, e.clientY - rect.top);
       });
 
       canvas.addEventListener("pointerup", () => {
+        dragging = false;
+      });
+
+      canvas.addEventListener("pointerleave", () => {
         dragging = false;
       });
 
@@ -180,6 +118,13 @@
 
       function update() {
         if (gameOver) return;
+
+        fireTimer++;
+
+        if (fireTimer >= 12) {
+          // sekitar 200 ms (60 fps)
+          fireTimer = 0;
+        }
 
         bullets.forEach((b) => (b.y -= 8));
         bullets = bullets.filter((b) => b.y > -20);
@@ -225,6 +170,17 @@
             player.y + player.height > e.y
           ) {
             gameOver = true;
+          }
+        });
+
+        enemies = enemies.filter((e) => e.y < canvas.height + 50);
+
+        stars.forEach((s) => {
+          s.y += 2;
+
+          if (s.y > canvas.height) {
+            s.y = 0;
+            s.x = Math.random() * canvas.width;
           }
         });
       }
