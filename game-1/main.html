@@ -46,8 +46,6 @@
 
       window.addEventListener("resize", resizeCanvas);
 
-      let dragging = false;
-
       let life = 3;
       let explosions = [];
       let stars = [];
@@ -86,24 +84,10 @@
         );
       }
 
-      canvas.addEventListener("pointerdown", () => {
-        dragging = true;
-      });
-
       canvas.addEventListener("pointermove", (e) => {
-        if (!dragging) return;
-
         const rect = canvas.getBoundingClientRect();
 
         movePlayer(e.clientX - rect.left, e.clientY - rect.top);
-      });
-
-      canvas.addEventListener("pointerup", () => {
-        dragging = false;
-      });
-
-      canvas.addEventListener("pointerleave", () => {
-        dragging = false;
       });
 
       function createEnemy() {
@@ -122,7 +106,13 @@
         fireTimer++;
 
         if (fireTimer >= 12) {
-          // sekitar 200 ms (60 fps)
+          bullets.push({
+            x: player.x + 16,
+            y: player.y,
+            width: 4,
+            height: 15,
+          });
+
           fireTimer = 0;
         }
 
