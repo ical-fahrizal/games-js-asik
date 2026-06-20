@@ -2,19 +2,25 @@
 <html>
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Jet Shooter</title>
     <style>
       body {
         margin: 0;
         background: black;
+        overflow: hidden;
         display: flex;
         justify-content: center;
         align-items: center;
         height: 100vh;
       }
+
       canvas {
         background: white;
         border: 2px solid black;
+        width: 100vw;
+        height: 100vh;
+        touch-action: none;
       }
 
       button {
@@ -30,6 +36,16 @@
     <script>
       const canvas = document.getElementById("game");
       const ctx = canvas.getContext("2d");
+
+      function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+
+      resizeCanvas();
+
+      window.addEventListener("resize", resizeCanvas);
+
       let dragging = false;
 
       let life = 3;
@@ -154,7 +170,7 @@
 
       function createEnemy() {
         enemies.push({
-          x: Math.random() * 450,
+          x: Math.random() * (canvas.width - 50),
           y: -40,
           width: 40,
           height: 40,
@@ -322,7 +338,7 @@
       function draw() {
         // background putih
         ctx.fillStyle = "white";
-        ctx.fillRect(0, 0, 500, 700);
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         // bintang
         ctx.fillStyle = "black";
@@ -354,7 +370,7 @@
         ctx.fillStyle = "black";
         ctx.font = "20px monospace";
         ctx.fillText("SCORE : " + score, 20, 30);
-        ctx.fillText("LIFE : " + life, 390, 30);
+        ctx.fillText("LIFE : " + life, canvas.width - 100, 30);
 
         if (gameOver) {
           ctx.font = "40px monospace";
