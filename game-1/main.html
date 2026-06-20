@@ -68,9 +68,12 @@
       };
 
       let bullets = [];
+      let enemyTarget = 1;
       let enemies = [];
       let fireTimer = 0;
       let timer = 0;
+
+      enemyTarget = Math.min(enemyTarget + 1, 20);
 
       function movePlayer(x, y) {
         player.x = x - player.width / 2;
@@ -118,12 +121,6 @@
 
         bullets.forEach((b) => (b.y -= 8));
         bullets = bullets.filter((b) => b.y > -20);
-
-        timer++;
-        if (timer > 40) {
-          createEnemy();
-          timer = 0;
-        }
 
         enemies.forEach((e) => (e.y += e.speed));
 
@@ -173,6 +170,12 @@
             s.x = Math.random() * canvas.width;
           }
         });
+
+        while (enemies.length < enemyTarget) {
+          createEnemy();
+        }
+
+        enemyTarget = Math.min(1 + Math.floor(score / 100), 15);
       }
 
       function drawPlayer2() {
