@@ -2,31 +2,46 @@
 <html>
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Create Games</title>
 
     <style>
+      * {
+        box-sizing: border-box;
+      }
+
       body {
         margin: 0;
-        background: white;
-        font-family: Arial;
+        min-height: 100vh;
+        background: #fff;
+
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 100vh;
+
+        font-family: Arial, sans-serif;
       }
 
       .container {
-        width: 500px;
+        width: 100%;
+        max-width: 500px;
+
+        padding: 20px;
       }
 
       h1 {
         text-align: center;
+        margin-bottom: 25px;
       }
 
       .game {
-        border: 2px solid black;
-        padding: 20px;
-        margin-bottom: 20px;
+        width: 100%;
+        border: 2px solid #444;
+        border-radius: 12px;
+
+        padding: 16px;
+        margin-bottom: 12px;
+
         cursor: pointer;
         transition: 0.3s;
       }
@@ -37,12 +52,34 @@
       }
 
       .title {
-        font-size: 24px;
+        font-size: 28px;
         font-weight: bold;
       }
 
       .desc {
-        margin-top: 10px;
+        margin-top: 6px;
+        color: #555;
+      }
+
+      /* HP */
+      @media (max-width: 600px) {
+        body {
+          align-items: flex-start;
+        }
+
+        .container {
+          max-width: none;
+          width: 100%;
+          padding: 15px;
+        }
+
+        .title {
+          font-size: 22px;
+        }
+
+        .desc {
+          font-size: 14px;
+        }
       }
     </style>
   </head>
@@ -51,18 +88,18 @@
       <h1>PILIH GAME</h1>
 
       <div class="game" onclick="location.href = './game-1/main.html'">
-        <div class="title">✈️ Game 1</div>
-        <div class="desc">Jet Shooter</div>
+        <div class="title">✈️ Jet Shooter</div>
+        <div class="desc">Battle Sky</div>
       </div>
 
       <div class="game" onclick="location.href = './game-2/main.html'">
-        <div class="title">🥛 Game 2</div>
-        <div class="desc">Dispenser Challenge</div>
+        <div class="title">🥛 Dispenser</div>
+        <div class="desc">Challenge</div>
       </div>
 
       <div class="game" onclick="location.href = './game-3/main.html'">
-        <div class="title">❌ ⭕ Game 3</div>
-        <div class="desc">Tic Tac Toe</div>
+        <div class="title">❌ ⭕ Tic Tac Toe</div>
+        <div class="desc">Transformers</div>
       </div>
     </div>
   </body>
