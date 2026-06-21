@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <title>Tic Tac Toe</title>
     <style>
+      * {
+        box-sizing: border-box;
+      }
+
       body {
         margin: 0;
         min-height: 100vh;
@@ -15,27 +19,45 @@
 
         font-family: Arial;
         background: #eee;
+
+        padding: 20px;
+      }
+
+      h1 {
+        margin: 10px 0;
+        font-size: clamp(24px, 6vw, 48px);
+      }
+
+      h3 {
+        margin: 10px 0;
+        font-size: clamp(18px, 4vw, 28px);
       }
 
       #board {
         display: grid;
-        grid-template-columns: repeat(3, 100px);
-        gap: 8px;
-        margin: 20px 0;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+
+        width: min(90vw, 360px);
       }
 
       .cell {
-        width: 100px;
-        height: 100px;
+        aspect-ratio: 1;
 
         border: 2px solid #555;
-        background: #ffffff;
+        background: #fff;
 
         display: flex;
         justify-content: center;
         align-items: center;
 
         cursor: pointer;
+      }
+
+      button {
+        margin-top: 20px;
+        padding: 12px 24px;
+        font-size: 18px;
       }
     </style>
   </head>
@@ -180,16 +202,20 @@
       function renderCell(cell, sprite) {
         cell.innerHTML = "";
 
+        let size = cell.clientWidth * 0.8;
+
         let canvas = document.createElement("canvas");
 
-        canvas.width = 80;
-        canvas.height = 80;
+        canvas.width = size;
+        canvas.height = size;
 
         cell.appendChild(canvas);
 
         let ctx = canvas.getContext("2d");
+
         ctx.imageSmoothingEnabled = false;
-        drawSprite(ctx, sprite, 80);
+
+        drawSprite(ctx, sprite, size);
       }
 
       function fadeSprite(sprite) {
@@ -320,6 +346,18 @@
 
       function stringToSprite(lines) {
         return lines.map((line) => line.split("").map(Number));
+      }
+
+      window.addEventListener("resize", redrawBoard);
+
+      function redrawBoard() {
+        for (let i = 0; i < 9; i++) {
+          if (board[i] === "X") {
+            renderCell(cells[i], autobot);
+          } else if (board[i] === "O") {
+            renderCell(cells[i], decepticon);
+          }
+        }
       }
     </script>
   </body>
