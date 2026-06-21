@@ -92,6 +92,12 @@
         movePlayer(e.clientX - rect.left, e.clientY - rect.top);
       });
 
+      canvas.addEventListener("pointerdown", () => {
+        if (gameOver) {
+          restartGame();
+        }
+      });
+
       function createEnemy() {
         enemies.push({
           x: Math.random() * (canvas.width - 50),
@@ -317,7 +323,7 @@
 
           ctx.font = "20px monospace";
           ctx.fillText(
-            "Refresh untuk bermain lagi",
+            "Tap layar untuk main lagi",
             canvas.width / 2,
             canvas.height / 2 + 40,
           );
@@ -328,6 +334,21 @@
         update();
         draw();
         requestAnimationFrame(loop);
+      }
+
+      function restartGame() {
+        score = 0;
+        gameOver = false;
+
+        bullets = [];
+        enemies = [];
+        explosions = [];
+
+        enemyTarget = 1;
+        fireTimer = 0;
+
+        player.x = canvas.width / 2;
+        player.y = canvas.height - 100;
       }
 
       loop();
