@@ -70,11 +70,13 @@
     <button onclick="resetGame()">Reset</button>
 
     <script>
+      // DATA
       const board = Array(9).fill("");
       const cells = [];
       const playerMoves = [];
       const cpuMoves = [];
-
+      let gameLocked = false;
+      let rank = 0;
       const wins = [
         [0, 1, 2],
         [3, 4, 5],
@@ -85,36 +87,141 @@
         [0, 4, 8],
         [2, 4, 6],
       ];
+      const RANKS = [
+        {
+          name: "⭐ Cadet",
+          ai: 1,
+          winNeed: 1,
+        },
+        {
+          name: "⭐⭐ Scout",
+          ai: 2,
+          winNeed: 1,
+        },
+        {
+          name: "⭐⭐⭐ Warrior",
+          ai: 3,
+          winNeed: 1,
+        },
+        {
+          name: "⭐⭐⭐⭐ Commander",
+          ai: 4,
+          winNeed: 1,
+        },
+        {
+          name: "⭐⭐⭐⭐⭐ Prime",
+          ai: 5,
+          winNeed: 999,
+        },
+      ];
 
-      const LEVEL = {
-        EASY: 1,
-        NORMAL: 2,
-        HARD: 3,
-        EXPERT: 4,
-        IMPOSSIBLE: 5,
-      };
+      // SPRITE
+      const autobot = stringToSprite([
+        "44440000000444444444400000004444",
+        "41003100013100000000131000130014",
+        "41003211333000000000033311230014",
+        "41001344000000000000000044310014",
+        "41001024100014322341000142010014",
+        "41000014210014444441001241000014",
+        "41001112431001444410013421110014",
+        "41004200244100144100144200240014",
+        "13101330014310022001341003310131",
+        "03100123102441000014420132100130",
+        "00200013210244100144201231000200",
+        "00431000431024444442013400013400",
+        "00143100024024444442042000134100",
+        "00024420011024211242011002442000",
+        "00014442222234200243222224441000",
+        "00012244100444200244400144221000",
+        "00012244400144100144100444221000",
+        "00012234444434100143444443221000",
+        "00012222444424100142444422221000",
+        "00012221242224100142224212221000",
+        "00012221242124100142124212221000",
+        "00001221242124100142124212210000",
+        "00042221242124333342124212224000",
+        "00042221242123444432124211224000",
+        "00003222242122222222124222230000",
+        "00000442242122222222124224400000",
+        "00000031242124444442124213000000",
+        "00000003442234222243224430000000",
+        "00000000032243222234223000000000",
+        "00000000004342333324340000000000",
+        "00000000000442333324400000000000",
+        "00000000000044444444000000000000",
+      ]);
+      const decepticon = stringToSprite([
+        "44200000044200000000244000000244",
+        "42310000043320000002334000001324",
+        "42222000044222000022244000022224",
+        "43222220044213200231244002222234",
+        "43222332244202322320244223321234",
+        "43222113344200233200244331122234",
+        "43222221134200000000243112222234",
+        "43222222213310000001331222222234",
+        "44322344411320033002311444322344",
+        "14322222233420032002433222222341",
+        "03322243322320022002322334222330",
+        "03322222233430011003433222222330",
+        "03322211133332000023333111222330",
+        "03322233321123100132112333222330",
+        "03432344433212311321233444323430",
+        "00332342002322233222320024323300",
+        "00343233100232211223200133234300",
+        "00333323310023222232001332333300",
+        "00332432333343122134333323423300",
+        "00332342232222222222223224323300",
+        "00232233221111222211112233223200",
+        "00023213322222222222222331232000",
+        "00023221432222222222223412232000",
+        "00023221343222222222234312232000",
+        "00023222133222222222233122232000",
+        "00024222213322222222331222242000",
+        "00024322213432222223431222342000",
+        "00013432222332222223322223431000",
+        "00001343221233222233212234310000",
+        "00000133332123322332123333100000",
+        "00000000333322333322333300000000",
+        "00000000003432344323430000000000",
+      ]);
+      const colors = [
+        "#fff", //0 putih
+        "#ddd", //1 abu muda
+        "#999", //2 abu
+        "#555", //3 abu tua
+        "#000", //4 hitam
+      ];
 
-      let level = LEVEL.HARD;
-
+      // INIT
       const statusText = document.getElementById("status");
       const boardDiv = document.getElementById("board");
 
-      for (let i = 0; i < 9; i++) {
-        const cell = document.createElement("div");
-        cell.className = "cell";
-        cell.onclick = () => playerMove(i);
-        boardDiv.appendChild(cell);
-        cells.push(cell);
+      function createBoard() {
+        for (let i = 0; i < 9; i++) {
+          const cell = document.createElement("div");
+
+          cell.className = "cell";
+
+          cell.onclick = () => playerMove(i);
+
+          boardDiv.appendChild(cell);
+
+          cells.push(cell);
+        }
       }
 
+      // GAME
       function playerMove(index) {
+        if (gameLocked) return;
         if (board[index] !== "") return;
 
         placeMove(index, "X", playerMoves);
 
         if (checkWinner("X")) {
-          statusText.innerHTML = "Autobot Menang!";
+          updateStatus("🏆 Autobot Menang!");
+          playerWin();
           disableBoard();
+          setTimeout(resetGame, 1500);
           return;
         }
 
@@ -122,65 +229,50 @@
       }
 
       function cpuMove() {
-        switch (level) {
-          case LEVEL.EASY:
+        switch (RANKS[rank].ai) {
+          case 1:
             easyMove();
             break;
 
-          case LEVEL.NORMAL:
+          case 2:
             normalMove();
             break;
 
-          default:
+          case 3:
             hardMove();
             break;
+
+          case 4:
+            expertMove();
+            break;
+
+          case 5:
+            impossibleMove();
+            break;
         }
-      }
-
-      function easyMove() {
-        let kosong = [];
-        for (let i = 0; i < 9; i++) {
-          if (board[i] === "") kosong.push(i);
-        }
-
-        if (kosong.length === 0) return;
-        let index = kosong[Math.floor(Math.random() * kosong.length)];
-        placeMove(index, "O", cpuMoves);
-        if (checkWinner("O")) {
-          statusText.innerHTML = "Decepticon Menang!";
-          disableBoard();
-        }
-      }
-
-      function normalMove() {
-        easyMove();
-      }
-
-      function hardMove() {
-        easyMove();
       }
 
       function placeMove(index, symbol, arr) {
         if (arr.length >= 3) {
           let oldest = arr.shift();
-          animateRemove(cells[oldest], board[oldest]);
+
+          let oldSymbol = board[oldest];
+
           board[oldest] = "";
+
+          animateRemove(cells[oldest], oldSymbol);
         }
 
         board[index] = symbol;
+
         if (symbol === "X") renderCell(cells[index], autobot);
         else renderCell(cells[index], decepticon);
+
         arr.push(index);
       }
 
       function checkWinner(symbol) {
         return wins.some((comb) => comb.every((i) => board[i] === symbol));
-      }
-
-      function disableBoard() {
-        cells.forEach((cell) => {
-          cell.onclick = null;
-        });
       }
 
       function resetGame() {
@@ -196,9 +288,167 @@
           cell.onclick = () => playerMove(index);
         });
 
-        statusText.innerHTML = "Giliran Autobot";
+        updateStatus("🤖 Giliran Autobot");
       }
 
+      function disableBoard() {
+        cells.forEach((cell) => {
+          cell.onclick = null;
+        });
+      }
+
+      // AI
+      function easyMove() {
+        let kosong = [];
+
+        for (let i = 0; i < 9; i++) {
+          if (board[i] === "") kosong.push(i);
+        }
+
+        if (kosong.length === 0) return;
+
+        let index = kosong[Math.floor(Math.random() * kosong.length)];
+
+        cpuPlace(index);
+      }
+
+      function normalMove() {
+        // Menang
+        let move = findWinningMoveFIFO("O", cpuMoves);
+
+        if (move !== -1) {
+          cpuPlace(move);
+          return;
+        }
+
+        // Blok pemain
+        move = findWinningMoveFIFO("X", playerMoves);
+
+        if (move !== -1) {
+          cpuPlace(move);
+          return;
+        }
+
+        easyMove();
+      }
+
+      function hardMove() {
+        let move = findWinningMoveFIFO("O", cpuMoves);
+
+        if (move !== -1) {
+          cpuPlace(move);
+          return;
+        }
+
+        move = findWinningMoveFIFO("X", playerMoves);
+
+        if (move !== -1) {
+          cpuPlace(move);
+          return;
+        }
+
+        // tengah
+        if (board[4] === "") {
+          cpuPlace(4);
+          return;
+        }
+
+        // sudut
+        let corners = [0, 2, 6, 8].filter((i) => board[i] === "");
+
+        if (corners.length > 0) {
+          move = corners[Math.floor(Math.random() * corners.length)];
+
+          cpuPlace(move);
+
+          return;
+        }
+
+        easyMove();
+      }
+
+      function expertMove() {
+        hardMove();
+      }
+
+      function impossibleMove() {
+        let move = minimaxFifo();
+
+        if (move != -1) {
+          cpuPlace(move);
+          return;
+        }
+
+        hardMove();
+      }
+
+      // RANK
+      function playerWin() {
+        if (rank < RANKS.length - 1) {
+          rank++;
+
+          alert("Promosi!\n" + RANKS[rank].name);
+        }
+
+        updateStatus();
+      }
+
+      function cpuWin() {
+        if (rank > 0) {
+          rank--;
+
+          alert("Turun Rank!\n" + RANKS[rank].name);
+        }
+
+        updateStatus();
+      }
+
+      function updateStatus(message = "") {
+        statusText.innerHTML = RANKS[rank].name + "<br>" + message;
+      }
+
+      function findWinningMoveFIFO(symbol, moveArray) {
+        for (let i = 0; i < 9; i++) {
+          if (board[i] !== "") continue;
+
+          let tempBoard = [...board];
+          let tempMoves = [...moveArray];
+
+          // simulasi FIFO
+          if (tempMoves.length >= 3) {
+            let oldest = tempMoves.shift();
+
+            tempBoard[oldest] = "";
+          }
+
+          tempBoard[i] = symbol;
+
+          tempMoves.push(i);
+
+          if (checkWinnerBoard(tempBoard, symbol)) {
+            return i;
+          }
+        }
+
+        return -1;
+      }
+
+      function checkWinnerBoard(tempBoard, symbol) {
+        return wins.some((comb) => comb.every((i) => tempBoard[i] === symbol));
+      }
+
+      function cpuPlace(index) {
+        placeMove(index, "O", cpuMoves);
+
+        if (checkWinner("O")) {
+          updateStatus("💀 Decepticon Menang!");
+          cpuWin();
+          disableBoard();
+          setTimeout(resetGame, 1500);
+        }
+      }
+
+      // RENDER
       function renderCell(cell, sprite) {
         cell.innerHTML = "";
 
@@ -216,6 +466,21 @@
         ctx.imageSmoothingEnabled = false;
 
         drawSprite(ctx, sprite, size);
+      }
+
+      function drawSprite(ctx, sprite, size) {
+        let rows = sprite.length;
+        let cols = sprite[0].length;
+
+        let pixel = Math.min(size / cols, size / rows);
+
+        for (let row = 0; row < rows; row++) {
+          for (let col = 0; col < cols; col++) {
+            ctx.fillStyle = colors[sprite[row][col]];
+
+            ctx.fillRect(col * pixel, row * pixel, pixel, pixel);
+          }
+        }
       }
 
       function fadeSprite(sprite) {
@@ -251,105 +516,6 @@
         }, 100);
       }
 
-      const autobot = stringToSprite([
-        "44440000000444444444400000004444",
-        "41003100013100000000131000130014",
-        "41003211333000000000033311230014",
-        "41001344000000000000000044310014",
-        "41001024100014322341000142010014",
-        "41000014210014444441001241000014",
-        "41001112431001444410013421110014",
-        "41004200244100144100144200240014",
-        "13101330014310022001341003310131",
-        "03100123102441000014420132100130",
-        "00200013210244100144201231000200",
-        "00431000431024444442013400013400",
-        "00143100024024444442042000134100",
-        "00024420011024211242011002442000",
-        "00014442222234200243222224441000",
-        "00012244100444200244400144221000",
-        "00012244400144100144100444221000",
-        "00012234444434100143444443221000",
-        "00012222444424100142444422221000",
-        "00012221242224100142224212221000",
-        "00012221242124100142124212221000",
-        "00001221242124100142124212210000",
-        "00042221242124333342124212224000",
-        "00042221242123444432124211224000",
-        "00003222242122222222124222230000",
-        "00000442242122222222124224400000",
-        "00000031242124444442124213000000",
-        "00000003442234222243224430000000",
-        "00000000032243222234223000000000",
-        "00000000004342333324340000000000",
-        "00000000000442333324400000000000",
-        "00000000000044444444000000000000",
-      ]);
-
-      const decepticon = stringToSprite([
-        "44200000044200000000244000000244",
-        "42310000043320000002334000001324",
-        "42222000044222000022244000022224",
-        "43222220044213200231244002222234",
-        "43222332244202322320244223321234",
-        "43222113344200233200244331122234",
-        "43222221134200000000243112222234",
-        "43222222213310000001331222222234",
-        "44322344411320033002311444322344",
-        "14322222233420032002433222222341",
-        "03322243322320022002322334222330",
-        "03322222233430011003433222222330",
-        "03322211133332000023333111222330",
-        "03322233321123100132112333222330",
-        "03432344433212311321233444323430",
-        "00332342002322233222320024323300",
-        "00343233100232211223200133234300",
-        "00333323310023222232001332333300",
-        "00332432333343122134333323423300",
-        "00332342232222222222223224323300",
-        "00232233221111222211112233223200",
-        "00023213322222222222222331232000",
-        "00023221432222222222223412232000",
-        "00023221343222222222234312232000",
-        "00023222133222222222233122232000",
-        "00024222213322222222331222242000",
-        "00024322213432222223431222342000",
-        "00013432222332222223322223431000",
-        "00001343221233222233212234310000",
-        "00000133332123322332123333100000",
-        "00000000333322333322333300000000",
-        "00000000003432344323430000000000",
-      ]);
-
-      const colors = [
-        "#fff", //0 putih
-        "#ddd", //1 abu muda
-        "#999", //2 abu
-        "#555", //3 abu tua
-        "#000", //4 hitam
-      ];
-
-      function drawSprite(ctx, sprite, size) {
-        let rows = sprite.length;
-        let cols = sprite[0].length;
-
-        let pixel = Math.min(size / cols, size / rows);
-
-        for (let row = 0; row < rows; row++) {
-          for (let col = 0; col < cols; col++) {
-            ctx.fillStyle = colors[sprite[row][col]];
-
-            ctx.fillRect(col * pixel, row * pixel, pixel, pixel);
-          }
-        }
-      }
-
-      function stringToSprite(lines) {
-        return lines.map((line) => line.split("").map(Number));
-      }
-
-      window.addEventListener("resize", redrawBoard);
-
       function redrawBoard() {
         for (let i = 0; i < 9; i++) {
           if (board[i] === "X") {
@@ -359,6 +525,17 @@
           }
         }
       }
+
+      // UTILITY
+      function stringToSprite(lines) {
+        return lines.map((line) => line.split("").map(Number));
+      }
+
+      // EVENT
+      window.addEventListener("resize", redrawBoard);
+
+      createBoard();
+      updateStatus("🤖 Giliran Autobot");
     </script>
   </body>
 </html>
